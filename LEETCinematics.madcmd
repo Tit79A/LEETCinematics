@@ -1,0 +1,85 @@
+cmd create lcin Allows you to perform cinematics!
+cmd edit lcin 1 let %apiURL% = \"http://lwpdl.pythonanywhere.com/api\"
+cmd edit lcin 2 let %playerStatus% = playerstatus(%p%)
+cmd edit lcin 3 if %playerStatus%[\"op\"] = %true% then goto 6
+cmd edit lcin 4 message %p% §cYou are not allowed to run this command.
+cmd edit lcin 5 exit
+cmd edit lcin 6 if varset(%args%[1]) then goto 9
+cmd edit lcin 7 message %p% §f[§a§lLCIN§r§f] What do you want to do? Use '§c/lcin help§f' to see the list of available commands.
+cmd edit lcin 8 exit
+cmd edit lcin 9 if %args%[1] = \"help\" then goto 15
+cmd edit lcin 10 if %args%[1] = \"pos\" then goto 17
+cmd edit lcin 11 if %args%[1] = \"reset\" then goto 33
+cmd edit lcin 12 if %args%[1] = \"play\" then goto 43
+cmd edit lcin 13 message %p% §f[§a§lLCIN§r§f] I don't have this feature... Use '§c/lcin help§f' to check if you have not made a mistake.
+cmd edit lcin 14 exit
+cmd edit lcin 15 message %p% \"§f----------  §a§lLEET Cinematics Help§r§f  ----------\\n§c/lcin pos§f - Add a new position to your path.\\n§c/lcin reset§f - Reset your path.\\n§c/lcin play <time>§f - Starting the travelling along the path with the specified time.\"
+cmd edit lcin 16 exit
+cmd edit lcin 17 let %coordinates%[\"x\"] = int(%x%)
+cmd edit lcin 18 let %coordinates%[\"y\"] = int(%y%)
+cmd edit lcin 19 let %coordinates%[\"z\"] = int(%z%)
+cmd edit lcin 20 let %coordinates%[\"yaw\"] = int(%yaw%)
+cmd edit lcin 21 let %coordinates%[\"pitch\"] = int(%pitch%)
+cmd edit lcin 22 load %leetCinematics%
+cmd edit lcin 23 let %numberPositions% = 0
+cmd edit lcin 24 if varset(%leetCinematics%) = %false% then goto 28
+cmd edit lcin 25 let %position% = %leetCinematics%[%p%]
+cmd edit lcin 26 if varset(%position%) = %false% then goto 28
+cmd edit lcin 27 let %numberPositions% = size(%position%)
+cmd edit lcin 28 let %position%[%numberPositions%] = %coordinates%
+cmd edit lcin 29 let %leetCinematics%[%p%] = %position%
+cmd edit lcin 30 save %leetCinematics%
+cmd edit lcin 31 message %p% §f[§a§lLCIN§r§f] Position n°§c%numberPositions%§f has been successfully defined.
+cmd edit lcin 32 exit
+cmd edit lcin 33 load %leetCinematics%
+cmd edit lcin 34 if varset(%leetCinematics%) = %false% then goto 41
+cmd edit lcin 35 let %position% = %leetCinematics%[%p%]
+cmd edit lcin 36 if varset(%position%) = %false% then goto 41
+cmd edit lcin 37 let %leetCinematics%[%p%] = array() - array()
+cmd edit lcin 38 save %leetCinematics%
+cmd edit lcin 39 message %p% §f[§a§lLCIN§r§f] Your positions have been deleted.
+cmd edit lcin 40 exit
+cmd edit lcin 41 message %p% §f[§a§lLCIN§r§f] You do not have defined positions.
+cmd edit lcin 42 exit
+cmd edit lcin 43 if varset(%args%[2]) then goto 46
+cmd edit lcin 44 message %p% §f[§a§lLCIN§r§f] You must specify the travelling time (in seconds).
+cmd edit lcin 45 exit
+cmd edit lcin 46 if (int(%args%[2]) >= 2) and (int(%args%[2]) <= 30) then goto 49
+cmd edit lcin 47 message %p% §f[§a§lLCIN§r§f] Travel time must be between §c2§f and §c30§f seconds.
+cmd edit lcin 48 exit
+cmd edit lcin 49 load %leetCinematics%
+cmd edit lcin 50 if varset(%leetCinematics%) = %false% then goto 55
+cmd edit lcin 51 if varset(%leetCinematics%[%p%]) = %false% then goto 55
+cmd edit lcin 52 let %position% = %leetCinematics%[%p%]
+cmd edit lcin 53 if size(%position%) < 2 then goto 55
+cmd edit lcin 54 goto 57
+cmd edit lcin 55 message %p% §f[§a§lLCIN§r§f] You haven't defined enough positions! Use '§c/lcin help§f' to learn how you can do it.
+cmd edit lcin 56 exit
+cmd edit lcin 57 message %p% §f[§a§lLCIN§r§f] Sending positions to the API for path calculation, please wait...
+cmd edit lcin 58 let %currentPosition% = 0
+cmd edit lcin 59 if %currentPosition% = size(%position%) then goto 63
+cmd edit lcin 60 let %posList%[] = join(%position%[%currentPosition%], \",\")
+cmd edit lcin 61 let %currentPosition% = %currentPosition% + 1
+cmd edit lcin 62 goto 59
+cmd edit lcin 63 let %result% = geturl(join(array(%apiURL%, \"/lcin/\", %args%[2], \"/\", join(%posList%, \";\")), \"\"))
+cmd edit lcin 64 if varset(%result%) = %false% then goto 67
+cmd edit lcin 65 let %data% = dejson(%result%)
+cmd edit lcin 66 if varset(%data%) then goto 69
+cmd edit lcin 67 message %p% §f[§a§lLCIN§r§f] Ouch, it seems that the API is not available, try again later.
+cmd edit lcin 68 exit
+cmd edit lcin 69 %nbPositions% = size(%data%)
+cmd edit lcin 70 message %p% §f[§a§lLCIN§r§f] A total of §c%nbPositions%§f positions have been received, starting the travelling...
+cmd edit lcin 71 let %current% = 0
+cmd edit lcin 72 if %current% = %nbPositions% then goto 83
+cmd edit lcin 73 let %curPos% = %data%[%current%]
+cmd edit lcin 74 let %curX% = %curPos%[0]
+cmd edit lcin 75 let %curY% = %curPos%[1]
+cmd edit lcin 76 let %curZ% = %curPos%[2]
+cmd edit lcin 77 let %curYaw% = %curPos%[3]
+cmd edit lcin 78 let %curPitch% = %curPos%[4]
+cmd edit lcin 79 move %p% %level% %curX% %curY% %curZ% %curYaw% %curPitch%
+cmd edit lcin 80 let %current% = %current% + 1
+cmd edit lcin 81 sleep 0.05
+cmd edit lcin 82 goto 72
+cmd edit lcin 83 message %p% §f[§a§lLCIN§r§f] The travelling is now complete!
+cmd edit lcin 84 exit
