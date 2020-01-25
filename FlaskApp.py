@@ -18,7 +18,7 @@ def apiGET(path):
                     time = int(parsedURL[1])
                     if time >= 2 and time <= 30:
                         data = parsedURL[2]
-                        if re.match("^((\,?-?\d+){5};?)*$", data):
+                        if re.match("^(-?\d+\,){4}-?\d+(;(-?\d+\,){4}-?\d+)*$", data):
                             try:
                                 x, y, z, yaw, pitch = ([] for i in range(5))
             
